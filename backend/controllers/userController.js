@@ -1,11 +1,13 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 function generateToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 }
 
+// REGISTER USER
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -46,8 +48,64 @@ const registerUser = asyncHandler(async (req, res) => {
     const { _id, name, email, photo, phone, bio } = user;
     res.status(201).json({ _id, name, email, photo, phone, bio, token });
   } else {
-    throw Error("Invalid User Data!");
+    throw new Error("Invalid User Data!");
   }
 });
 
-module.exports = { registerUser };
+// LOGIN USER
+const loginUser = asyncHandler(async (req, res) => {
+  // res.send("Login User!");
+  const { email, password } = req.body;
+
+  // Validate Request
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please, write your email and password!");
+  }
+  // Check if User exists
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(400);
+    throw new Error("User not Found. Please, sign up!");
+  }
+
+  // Check if Password is correct
+  const passwordIsCorrect = await bcrypt.compare(password, user.password);
+
+  // GENERATE TOKEN
+  const token = generateToken(user._id);
+
+  // SEND HTTP-ONLY COOKIE
+  if (passwordIsCorrect) {
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // 1 day
+      sameSite: "none",
+      secure: true,
+    });
+  }
+
+  if (user && passwordIsCorrect) {
+    const { _id, name, email, photo, phone, bio } = user;
+    res.status(200).json({ _id, name, email, photo, phone, bio, token });
+  } else {
+    res.status(400);
+    throw new Error("Invalid Email or Password!");
+  }
+});
+
+// LOGOUT USER
+const logout = asyncHandler(async (req, res) => {
+  res.cookie("token", "", {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(0), // 1 day
+    sameSite: "none",
+    secure: true,
+  });
+
+  return res.status(200).json({ message: "Successfuly Log Out!" });
+});
+
+module.exports = { registerUser, loginUser, logout };
