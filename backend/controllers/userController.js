@@ -48,6 +48,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const { _id, name, email, photo, phone, bio } = user;
     res.status(201).json({ _id, name, email, photo, phone, bio, token });
   } else {
+    res.status(400);
     throw new Error("Invalid User Data!");
   }
 });
@@ -82,7 +83,7 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 86400), // 1 day
       sameSite: "none",
-      secure: true,
+      secure: false,
     });
   }
 
@@ -108,4 +109,36 @@ const logout = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Successfuly Log Out!" });
 });
 
-module.exports = { registerUser, loginUser, logout };
+// GET USER
+const getUser = asyncHandler(async (req, res) => {
+  // res.send("Get User!");
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const { _id, name, email, photo, phone, bio } = user;
+    res.status(200).json({ _id, name, email, photo, phone, bio });
+  } else {
+    res.status(400);
+    throw new Error("User not Found!");
+  }
+});
+
+// GET LOGIN STATUS
+const loginStatus = asyncHandler(async (req, res) => {
+  // res.send("Login Status!");
+
+  const token = req.cookies.token;
+  if (!token) {
+    return res.json(false);
+  }
+  // Verify Token
+  const tokenVerified = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (tokenVerified) {
+    return res.json(true);
+  }
+
+  return res.json(false);
+});
+
+module.exports = { registerUser, loginUser, logout, getUser, loginStatus };
