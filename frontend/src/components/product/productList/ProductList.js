@@ -2,8 +2,20 @@ import { Spinner } from "../../loader/Loader";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { AiOutlineEye } from "react-icons/ai";
 import "./ProductList.scss";
+import Search from "../../search/Search";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  FILTER_PRODUCTS,
+  selectFilteredProducts,
+} from "../../../redux/features/product/filterSlice";
+import ReactPaginate from "react-paginate";
 
 export default function ProductList({ products, isLoading }) {
+  const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
+  const filteredProducts = useSelector(selectFilteredProducts);
+
   function shortenText(text, n) {
     if (text.length > n) {
       const shortenedText = text.substring(0, n).concat("...");
@@ -11,6 +23,33 @@ export default function ProductList({ products, isLoading }) {
     }
     return text;
   }
+
+  function onChange(e) {
+    return;
+  }
+
+  // BEGINNING PAGINATION
+  const [currentItems, setCurrentItems] = useState([]);
+  const [pageCount, setPageCount] = useState(0);
+  const [itemOffset, setItemOffset] = useState(0);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    const endOffset = itemOffset + itemsPerPage;
+
+    setCurrentItems(filteredProducts.slice(itemOffset, endOffset));
+    setPageCount(Math.ceil(filteredProducts.length / itemsPerPage));
+  }, [itemOffset, itemsPerPage, filteredProducts]);
+
+  const handlePageClick = (event) => {
+    const newOffset = (event.selected * itemsPerPage) % filteredProducts.length;
+    setItemOffset(newOffset);
+  };
+  // END BEGINNING PAGINATION
+
+  useEffect(() => {
+    dispatch(FILTER_PRODUCTS({ products, search }));
+  }, [products, search, dispatch]);
 
   return (
     <div className="product-list">
@@ -21,7 +60,10 @@ export default function ProductList({ products, isLoading }) {
             <h3>Inventory Items</h3>
           </span>
           <span>
-            <h3>Search Product</h3>
+            <Search
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </span>
         </div>
         {isLoading && <Spinner />}
@@ -42,7 +84,7 @@ export default function ProductList({ products, isLoading }) {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product, index) => {
+                {currentItems.map((product, index) => {
                   const { _id, name, category, price, quantity } = product;
                   return (
                     <tr key={_id}>
@@ -64,6 +106,20 @@ export default function ProductList({ products, isLoading }) {
             </table>
           )}
         </div>
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel="Next"
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={5}
+          pageCount={pageCount}
+          previousLabel="Prev"
+          renderOnZeroPageCount={null}
+          containerClassName="pagination"
+          pageLinkClassName="page-num"
+          previousLinkClassName="page-num"
+          nextLinkClassName="page-num"
+          activeLinkClassName="activePage"
+        />
       </div>
     </div>
   );
