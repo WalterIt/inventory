@@ -10,6 +10,7 @@ import {
   selectFilteredProducts,
 } from "../../../redux/features/product/filterSlice";
 import ReactPaginate from "react-paginate";
+import { formatNumbers } from "../productSummary/ProductSummary";
 
 export default function ProductList({ products, isLoading }) {
   const [search, setSearch] = useState("");
@@ -91,9 +92,9 @@ export default function ProductList({ products, isLoading }) {
                       <td>{index + 1} </td>
                       <td>{shortenText(name, 16)} </td>
                       <td>{category} </td>
-                      <td>$ {price} </td>
+                      <td>$ {formatNumbers(price)} </td>
                       <td>{quantity} </td>
-                      <td>$ {price * quantity} </td>
+                      <td>$ {formatNumbers((price * quantity).toFixed(2))} </td>
                       <td className="icons">
                         <AiOutlineEye size={25} color={"purple"} />
                         <FaEdit size={20} color={"green"} />

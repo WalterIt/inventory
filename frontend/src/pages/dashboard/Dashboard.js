@@ -27,8 +27,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2>Dashboard</h2>
-      <ProductSummary />
+      <ProductSummary products={products} />
       <ProductList products={products} isLoading={isLoading} />
     </div>
   );
