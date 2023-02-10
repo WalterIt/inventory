@@ -11,6 +11,13 @@ import {
 } from "../../../redux/features/product/filterSlice";
 import ReactPaginate from "react-paginate";
 import { formatNumbers } from "../productSummary/ProductSummary";
+import { confirmAlert } from "react-confirm-alert"; // Import
+import "react-confirm-alert/src/react-confirm-alert.css";
+import {
+  deleteProduct,
+  getProducts,
+} from "../../../redux/features/product/productSlice";
+import { Link } from "react-router-dom";
 
 export default function ProductList({ products, isLoading }) {
   const [search, setSearch] = useState("");
@@ -51,6 +58,29 @@ export default function ProductList({ products, isLoading }) {
   useEffect(() => {
     dispatch(FILTER_PRODUCTS({ products, search }));
   }, [products, search, dispatch]);
+
+  async function delProduct(id) {
+    console.log(id);
+    await dispatch(deleteProduct(id));
+    await dispatch(getProducts());
+  }
+
+  function confirmDelete(id) {
+    confirmAlert({
+      title: "Delete Product",
+      message: `Are you sure you want to delete this product?`,
+      buttons: [
+        {
+          label: "Delete",
+          onClick: () => delProduct(id),
+        },
+        {
+          label: "Cancel",
+          // onClick: () => alert('Click No')
+        },
+      ],
+    });
+  }
 
   return (
     <div className="product-list">
@@ -96,9 +126,15 @@ export default function ProductList({ products, isLoading }) {
                       <td>{quantity} </td>
                       <td>$ {formatNumbers((price * quantity).toFixed(2))} </td>
                       <td className="icons">
-                        <AiOutlineEye size={25} color={"purple"} />
+                        <Link to={`/product-detail/${_id}`}>
+                          <AiOutlineEye size={25} color={"purple"} />
+                        </Link>
                         <FaEdit size={20} color={"green"} />
-                        <FaTrashAlt size={20} color={"red"} />
+                        <FaTrashAlt
+                          onClick={() => confirmDelete(_id)}
+                          size={20}
+                          color={"red"}
+                        />
                       </td>
                     </tr>
                   );
