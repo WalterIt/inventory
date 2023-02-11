@@ -129,7 +129,9 @@ export default function ProductList({ products, isLoading }) {
                         <Link to={`/product-detail/${_id}`}>
                           <AiOutlineEye size={25} color={"purple"} />
                         </Link>
-                        <FaEdit size={20} color={"green"} />
+                        <Link to={`/edit-product/${_id}`}>
+                          <FaEdit size={20} color={"green"} />
+                        </Link>
                         <FaTrashAlt
                           onClick={() => confirmDelete(_id)}
                           size={20}

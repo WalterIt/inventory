@@ -27,11 +27,18 @@ async function getProduct(id) {
   return response.data;
 }
 
+//  UPDATE A PRODUCT
+async function updateProduct(id, formData) {
+  const response = await axios.patch(`${API_URL}${id}`, formData);
+  return response.data;
+}
+
 const productService = {
   createProduct,
   getProducts,
   deleteProduct,
   getProduct,
+  updateProduct,
 };
 
 export default productService;
